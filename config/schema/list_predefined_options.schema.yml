@@ -1,0 +1,7 @@
+field.field.*.*.*.third_party.list_predefined_options:
+  type: mapping
+  label: Predefined options
+  mapping:
+    plugin_id:
+      type: string
+      label: Plugin ID

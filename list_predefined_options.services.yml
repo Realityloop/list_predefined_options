@@ -1,0 +1,4 @@
+services:
+  plugin.manager.list_options.processor:
+    class: Drupal\list_predefined_options\Plugin\ListOptionsManager
+    parent: default_plugin_manager

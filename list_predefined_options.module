@@ -1,0 +1,72 @@
+<?php
+
+/**
+ * @file
+ * Provides reusable, predefined options for list fields.
+ */
+
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Entity\FieldableEntityInterface;
+use Drupal\Core\Field\FieldStorageDefinitionInterface;
+
+/**
+ * Implements hook_form_FORM_ID_alter(): field_storage_config_edit_form.
+ */
+function list_predefined_options_form_field_storage_config_edit_form_alter(&$form, FormStateInterface $form_state, $form_id) {
+  /** @var \Drupal\Core\Field\FieldConfigInterface $field */
+  $field = $form_state->getFormObject()->getEntity();
+
+  $field_types = [
+    'list_float',
+    'list_integer',
+    'list_string',
+  ];
+
+  if (in_array($field->getType(), $field_types)) {
+    $options = \Drupal::service('plugin.manager.list_options.processor')->listOptions();
+    $options = ['' => t('Custom')] + $options;
+
+    $settings = $field->getThirdPartySettings('list_predefined_options');
+    $form['list_predefined_options_plugin_id'] = [
+      '#type' => 'select',
+      '#title' => t('Allowed values'),
+      '#options' => $options,
+      '#default_value' => isset($settings['plugin_id']) ? $settings['plugin_id'] : NULL,
+      '#weight' => -20,
+    ];
+    // TODO: currently produces an error.
+    //$form['allowed_values']['#states']['visible'][':input[name="field[settings][allowed_values_function]"]'] = array('value' => '');
+    $form['allowed_values']['#access'] = TRUE;
+    $form['allowed_values_function_display']['#access'] = FALSE;
+
+    $form['#entity_builders'][] = 'list_predefined_options_form_field_storage_config_edit_form_builder';
+  }
+}
+
+/**
+ * Entity builder callback to save our settings into the field storage config.
+ */
+function list_predefined_options_form_field_storage_config_edit_form_builder($entity_type, $entity, &$form, FormStateInterface $form_state) {
+  $plugin_id = $form_state->getValue('list_predefined_options_plugin_id');
+  if (!empty($plugin_id)) {
+    $entity->setThirdPartySetting('list_predefined_options', 'plugin_id', $plugin_id);
+    $entity->setSetting('allowed_values_function', 'list_predefined_options_allowed_values');
+  }
+  else {
+    $entity->unsetThirdPartySetting('list_predefined_options', 'plugin_id');
+    // If one of our plugins is being removed, remove our allowed values
+    // function setting.
+    if ($entity->getSetting('allowed_values_function') == 'list_predefined_options_allowed_values') {
+      $entity->setSetting('allowed_values_function', '');
+    }
+  }
+}
+
+/**
+ * Implements callback_allowed_values_function().
+ */
+function list_predefined_options_allowed_values(FieldStorageDefinitionInterface $definition, FieldableEntityInterface $entity = NULL, &$cacheable = TRUE) {
+  $plugin_id = $definition->getThirdPartySetting('list_predefined_options', 'plugin_id');
+  $plugin = \Drupal::service('plugin.manager.list_options.processor')->createInstance($plugin_id);
+  return $plugin->getListOptions($definition, $entity, $cacheable);
+}

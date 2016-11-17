@@ -1,0 +1,7 @@
+name: 'List Predefined Options'
+type: module
+description: 'Provides reusable, predefined options for list fields'
+package: Fields
+dependencies:
+  - options
+core: 8.x
