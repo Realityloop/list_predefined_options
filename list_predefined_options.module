@@ -60,7 +60,7 @@ function list_predefined_options_form_field_storage_config_edit_form_alter(&$for
         '#description' => t('If left empty, the value of this field will be determined by the %function function.', ['%function' => $allowed_values_function]),
         '#options' => $plugin->getListOptions($field),
         '#multiple' => TRUE,
-        '#default_value' => $allowed_values,
+        '#default_value' => array_keys($allowed_values),
       ];
       $form['settings']['allowed_values_function']['#description'] = FALSE;
     }
