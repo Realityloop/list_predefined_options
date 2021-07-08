@@ -1,0 +1,7 @@
+{
+  "name": "drupal/list_predefined_options",
+  "description": "List Predefined Options",
+  "type": "drupal-module",
+  "license": "GPL-2.0+",
+  "authors": []
+}
